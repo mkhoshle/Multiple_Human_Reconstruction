@@ -3,16 +3,24 @@ ARGS:
  tab: 'process_images'
  GPUS: 0
 
- #backbone: 'hrnet' #'resnet' #
+ backbone: 'resnet' 
+ position_embedding: "learned"
  model_precision: 'fp16'
- val_batch_size: 1
+ val_batch_size: 4
  nw: 4
- nw_eval: 2
- eval: True
+ nw_eval: 4
  centermap_size: 32
- model_path: "trained_models/resnet_cm16_V1_epoch_32.pkl" 
+ hidden_dim: 16                 # This should be divisible by the number of heads
+ hidden_dim_pos: 16
+ nheads: 4
+ dim_feedforward: 256
+ enc_layers: 3
+ dec_layers: 3
+
+ model_path: "trained_models/resnet_cm32_V1_epoch_2.pkl" 
+ # model_path: "trained_models/resnet_cm32_V1_epoch_51.pkl"
  save_visualization_on_img: True
- smpl_mesh_root_align: False
+ smpl_mesh_root_align: True
  show_mesh_stand_on_image: False
  soi_camera: 'far' # 'close'
  interactive_vis: False
@@ -21,9 +29,9 @@ ARGS:
  # default: run on demo/images and the results would be saved at demo/images_results
  # for video demo/videos/Messi_1
  inputs: '/path/to/image_folder' #'demo/videos/Messi_1'
- collect_subdirs: False # whether to collect images from the sub-folder of the input path.
+ collect_subdirs: True # whether to collect images from the sub-folder of the input path.
  output_dir: 'demo/image_results'
- save_mesh: True
+ save_mesh: False
  save_centermap: True
  save_dict_results: True
  mesh_cloth: 'ghostwhite'  #'LightCyan'

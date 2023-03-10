@@ -14,7 +14,7 @@ class H36M(Image_base):
         self.train_flag=train_flag
         self.split = split
         self.train_test_subject = {'train':['S1','S5','S6','S7','S8'],'test':['S9','S11']}
-        self.track_id = {'S1':1,'S5':2,'S6':3,'S7':4,'S8':5, 'S9':6,'S11':7}
+        self.track_id = {'S1':1,'S5':2,'S6':3,'S7':4,'S8':5,'S9':6,'S11':7}
         self.camMat_views = [np.array([[intrinsic['focal_length'][0], 0, intrinsic['center'][0]],\
                                        [0, intrinsic['focal_length'][1], intrinsic['center'][1]],\
                                        [0,0,1]]) \

@@ -50,7 +50,7 @@ class Base(object):
         logging.info('start building model.')
         model = build_model()
         if self.fine_tune or self.eval:
-            drop_prefix = ''
+            drop_prefix = ' '
             if self.model_version == 6:
                 model = load_model(
                     self.model_path, model, prefix='module.', drop_prefix=drop_prefix, fix_loaded=True)
@@ -177,7 +177,7 @@ class Base(object):
         logging.info('gathering datasets')
         datasets = SingleDataset(**kwargs)
         return DataLoader(dataset=datasets, shuffle=shuffle, batch_size=self.val_batch_size,
-                          drop_last=True, pin_memory=True, num_workers=self.nw_eval)
+                          drop_last=False, pin_memory=True, num_workers=self.nw_eval)
 
     def set_up_val_loader(self):
         eval_datasets = self.eval_datasets.split(',')

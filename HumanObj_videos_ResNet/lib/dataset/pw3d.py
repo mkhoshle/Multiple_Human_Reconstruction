@@ -144,7 +144,7 @@ class PW3D(Image_base):
         subject_ids, genders, kp2ds, kp3ds, params, bbox, valid_mask_2d, valid_mask_3d = [[] for i in range(8)]
         for inds, annot in enumerate(annots):
             video_name, gender, person_id, frame_id, kp2d, kp3d, pose_param, beta_param = annot
-            print(kp3d.shape,'00')
+            # print(kp3d.shape,'00')
             subject_ids.append(person_id)
             genders.append(gender)
             if not self.regress_smpl:
@@ -153,7 +153,7 @@ class PW3D(Image_base):
             params.append(np.concatenate([pose_param[:66], beta_param[:10]]))
             kp2d_gt = self.map_kps(kp2d, self.joint_mapper)
             kp2ds.append(kp2d_gt)
-            valid_mask_2d.append([True,False,False])
+            valid_mask_2d.append([True,True,True])
             valid_mask_3d.append([True,True,True,True])
 
         kp2ds, kp3ds, params = np.array(kp2ds), np.array(kp3ds), np.array(params)
@@ -167,7 +167,7 @@ class PW3D(Image_base):
                 kp3ds.append(smpl_outs['j3d'].numpy())
             kp3ds = np.concatenate(kp3ds, 0)
             
-        print(kp3ds.shape,11)
+        # print(kp3ds.shape,11)
         imgpath = os.path.join(self.image_dir,video_name,'image_{:05}.jpg'.format(frame_id))
         image = cv2.imread(imgpath)[:,:,::-1].copy()
 
@@ -176,11 +176,13 @@ class PW3D(Image_base):
         kp3ds -= root_trans[:,None]
         kp3ds[~valid_masks] = -2.
         
-        print(kp3ds[0].shape,22)
+        # print(kp3ds[0].shape,22)
+        # vmask_2d | 0: kp2d/bbox | 1: track ids | 2: detect all people in image
+        # vmask_3d | 0: kp3d | 1: smpl global orient | 2: smpl body pose | 3: smpl body shape
         img_info = {'imgpath': imgpath, 'image': image, 'kp2ds': kp2ds, 'track_ids': subject_ids,\
                     'vmask_2d': valid_mask_2d, 'vmask_3d': valid_mask_3d,\
                     'kp3ds': kp3ds, 'params': params, 'img_size': image.shape[:2], 'ds':self.dataset_name, 
-                    'data_class':'pw3d'}
+                    'data_class':'pw3d', "ds_name":'pw3d'}
             
         return img_info
 
@@ -287,7 +289,7 @@ class PW3D(Image_base):
             self.file_paths = file_paths
             self.annots = annots
         
-        print(kp3ds["downtown_arguing_00.pkl"][0][0].shape,'h11')
+        # print(kp3ds["downtown_arguing_00.pkl"][0][0].shape,'h11')
 
     def pack_data(self):
         """

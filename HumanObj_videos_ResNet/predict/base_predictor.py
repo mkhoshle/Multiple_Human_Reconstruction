@@ -65,6 +65,8 @@ class Predictor(Base):
         pj2d_org_results = outputs['pj2d_org'].detach().cpu().numpy().astype(np.float16)
         center_confs = outputs['centers_conf'].detach().cpu().numpy().astype(np.float16)
 
+        print("center_confs",center_confs)
+
         vids_org = np.unique(reorganize_idx)
         for idx, vid in enumerate(vids_org):
             verts_vids = np.where(reorganize_idx==vid)[0]

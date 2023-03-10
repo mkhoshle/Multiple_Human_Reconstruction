@@ -5,6 +5,7 @@ import numpy as np
 import logging
 
 def justify_detection_state(detection_flag, reorganize_idx):
+    print(detection_flag)
     if detection_flag.sum() == 0:
         detection_flag = False
     else:
@@ -15,11 +16,13 @@ def justify_detection_state(detection_flag, reorganize_idx):
 def copy_state_dict(cur_state_dict, pre_state_dict, prefix = 'module.', drop_prefix='', fix_loaded=False):
     success_layers, failed_layers = [], []
     def _get_params(key):
-        key = key.replace(drop_prefix,'')
-        key = prefix + key
-        if key in pre_state_dict:
-            return pre_state_dict[key]
-        return None
+        if drop_prefix in key:
+            key = key.replace(drop_prefix,'')
+            key = prefix + key
+            if key in pre_state_dict:
+                return pre_state_dict[key]
+            return None
+        return pre_state_dict[key]
 
     for k in cur_state_dict.keys():
         v = _get_params(k)
@@ -28,12 +31,14 @@ def copy_state_dict(cur_state_dict, pre_state_dict, prefix = 'module.', drop_pre
                 failed_layers.append(k)
                 continue
             cur_state_dict[k].copy_(v)
+
             if prefix in k and prefix!='':
                 k=k.split(prefix)[1]
             success_layers.append(k)
-        except:
+        except Exception as e:
             logging.info('copy param {} failed, mismatched'.format(k))
             continue
+
     logging.info('missing parameters of layers:{}'.format(failed_layers))
 
     if fix_loaded and len(failed_layers)>0:
@@ -55,6 +60,8 @@ def load_model(path, model, prefix = 'module.', drop_prefix='',optimizer=None, *
         if isinstance(pretrained_model, dict):
             if 'model_state_dict' in pretrained_model:
                 pretrained_model = pretrained_model['model_state_dict']
+                print("here")
+
         copy_state_dict(current_model, pretrained_model, prefix = prefix, drop_prefix=drop_prefix, **kwargs)
     else:
         logging.warning('model {} not exist!'.format(path))

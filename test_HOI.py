@@ -3,11 +3,16 @@ import sys
 from HumanObj_videos_ResNet.lib.config import ConfigContext, parse_args, args
 from HumanObj_videos_ResNet.predict.image import Image_processor
 
-CUDA_LAUNCH_BLOCKING = 1
+#ConfigContext.parsed_args = parse_args(["--configs_yml=configs/image.yml",
+#                                        '--inputs=demo/videos/demo_video_frames',
+#                                        '--output_dir=demo/video_results2',
+#                                        '--renderer=pytorch3d'])
+
 ConfigContext.parsed_args = parse_args(["--configs_yml=configs/image.yml",
-                                        '--inputs=demo/videos/demo_frames',
-                                        '--output_dir=demo/video_results2',
+                                        '--inputs=demo/images',
+                                        '--output_dir=demo/image_results2',
                                         '--renderer=pytorch3d'])
+
 
 # second, run the code
 processor = Image_processor(args_set=args())

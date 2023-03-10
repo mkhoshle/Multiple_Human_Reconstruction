@@ -103,7 +103,9 @@ class Image_base(Dataset):
         # 1: 3D pose, 2: subject id, 3: smpl root rot, 4: smpl pose param, 5: smpl shape param
         valid_masks = np.zeros((self.max_person, 6), dtype=np.bool)
         info = self.get_image_info(index)
-        print(info['kp3ds'][0].shape,'kp3ds1111')
+        # print(info['kp3ds'][0].shape,'kp3ds1111')
+        print(info['imgpath'])
+        print(info['kp2ds'].shape,"kp2ds00")
         scale, rot, flip, color_jitter, syn_occlusion = self._calc_csrfe()
         mp_mode = self._check_mp_mode_() 
 
@@ -111,6 +113,8 @@ class Image_base(Dataset):
         if img_info is None:
             return self.resample()
         image, image_wbg, full_kps, offsets = img_info
+        
+        print(full_kps[0].shape,"kp2ds11")
         centermap, person_centers, full_kp2ds, used_person_inds, valid_masks[:,0], bboxes_hw_norm, heatmap, AE_joints = \
             self.process_kp2ds_bboxes(full_kps, img_shape=image.shape, is_pose2d=info['vmask_2d'][:,0])
 
@@ -239,8 +243,12 @@ class Image_base(Dataset):
                 bboxes_hw_norm += bboxes_hw_norm_bbox
         if is_pose2d.sum() == 0:
             heatmap, AE_joints = np.zeros((17, 128, 128)), np.zeros((self.max_person, 17, 2))
+            
+        print(person_centers.shape,"person_centers")
         # person_centers changed after CAR processing
         centermap = self.CM.generate_centermap(person_centers, bboxes_hw_norm=bboxes_hw_norm, occluded_by_who=occluded_by_who)
+        
+        print(centermap.shape,'centermap')
         # rectify the x, y order, from x-y to y-x
         person_centers = person_centers[:,::-1].copy()
         return centermap, person_centers, full_kp2ds, used_person_inds, valid_mask_kp2ds, bboxes_hw_norm, heatmap, AE_joints

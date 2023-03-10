@@ -88,7 +88,8 @@ class SingleDataset(torch.utils.data.Dataset):
     def __init__(self, dataset=None,**kwargs):
         assert dataset in dataset_dict, print('dataset {} not found while creating data loader!'.format(dataset))
         self.dataset = dataset_dict[dataset](**kwargs)
-        self.length = len(self.dataset)            
+        self.length = len(self.dataset)     
+        
 
     def __getitem__(self, index):
         return self.dataset[index]

@@ -103,7 +103,9 @@ class Image_base(Dataset):
         # 1: 3D pose, 2: subject id, 3: smpl root rot, 4: smpl pose param, 5: smpl shape param
         valid_masks = np.zeros((self.max_person, 6), dtype=np.bool)
         info = self.get_image_info(index)
-        print(info['kp3ds'][0].shape,'kp3ds1111')
+        # print(info['kp3ds'][0].shape,'kp3ds1111')
+        # print(info['imgpath'])
+        # print(info['kp2ds'].shape,"kp2ds00")
         scale, rot, flip, color_jitter, syn_occlusion = self._calc_csrfe()
         mp_mode = self._check_mp_mode_() 
 
@@ -111,6 +113,8 @@ class Image_base(Dataset):
         if img_info is None:
             return self.resample()
         image, image_wbg, full_kps, offsets = img_info
+        
+        # print(full_kps[0].shape,"kp2ds11")
         centermap, person_centers, full_kp2ds, used_person_inds, valid_masks[:,0], bboxes_hw_norm, heatmap, AE_joints = \
             self.process_kp2ds_bboxes(full_kps, img_shape=image.shape, is_pose2d=info['vmask_2d'][:,0])
 
@@ -123,6 +127,13 @@ class Image_base(Dataset):
             augments=(rot, flip), valid_mask_kp3ds=info['vmask_3d'][:, 0])
         params, valid_masks[:,3:6] = self.process_smpl_params(info['params'], used_person_inds, \
             augments=(rot, flip), valid_mask_smpl=info['vmask_3d'][:, 1:4])
+        
+        # save_name = os.path.join("/z/home/mkhoshle/Human_object_transform", str(index)+".jpg")
+        # from visualization.visualization import make_heatmaps
+        # centermap_color = make_heatmaps(dst_image.copy(), centermap)
+        # print(save_name)
+        # print(type(centermap_color),centermap_color.shape)
+        # cv2.imwrite(save_name, cv2.cvtColor(centermap_color, cv2.COLOR_RGB2BGR))
     
         input_data = {
             'image': torch.from_numpy(dst_image).float(),
@@ -239,8 +250,12 @@ class Image_base(Dataset):
                 bboxes_hw_norm += bboxes_hw_norm_bbox
         if is_pose2d.sum() == 0:
             heatmap, AE_joints = np.zeros((17, 128, 128)), np.zeros((self.max_person, 17, 2))
+            
+        # print(person_centers.shape,"person_centers")
         # person_centers changed after CAR processing
         centermap = self.CM.generate_centermap(person_centers, bboxes_hw_norm=bboxes_hw_norm, occluded_by_who=occluded_by_who)
+        
+        # print(centermap.shape,'centermap')
         # rectify the x, y order, from x-y to y-x
         person_centers = person_centers[:,::-1].copy()
         return centermap, person_centers, full_kp2ds, used_person_inds, valid_mask_kp2ds, bboxes_hw_norm, heatmap, AE_joints
@@ -261,12 +276,12 @@ class Image_base(Dataset):
         return image, dst_image, org_image
 
     def process_kp3ds(self, kp3ds, used_person_inds, augments=None, valid_mask_kp3ds=None):
-        print(kp3ds[0].shape,'kp3d4')
+        # print(kp3ds[0].shape,'kp3d4')
         rot, flip = augments
         kp3d_flag = np.zeros(self.max_person, dtype=np.bool)
         joint_num = self.joint_number if self.train_flag or kp3ds is None else kp3ds[0].shape[0]
         kp3d_processed = np.ones((self.max_person, joint_num, 3), dtype=np.float32)*-2. # -2 serves as an invisible flag
-        print(kp3d_processed.shape,'kp3d3')
+        # print(kp3d_processed.shape,'kp3d3')
         
         for inds, used_id in enumerate(used_person_inds):
             if valid_mask_kp3ds[used_id]:
@@ -279,7 +294,7 @@ class Image_base(Dataset):
                     kp3d = flip_kps(kp3d,flipped_parts=constants.All54_flip)
                     valid_mask = valid_mask[constants.All54_flip]
                 kp3d[~valid_mask] = -2.
-                print(kp3d.shape,'kp3d2')
+                # print(kp3d.shape,'kp3d2')
                 kp3d_processed[inds] = kp3d
              
         return kp3d_processed, kp3d_flag

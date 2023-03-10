@@ -189,6 +189,9 @@ class ResultParser(nn.Module):
             outputs['params_pred'] = self.parameter_sampling(
                 outputs['params_maps'], batch_ids, flat_inds, use_transform=True)
         if 'centers_pred' not in outputs:
+            print(flat_inds)
+            print(flat_inds, args().centermap_size, torch.div(flat_inds, args().centermap_size, rounding_mode='floor'))
+            
             outputs['centers_pred'] = torch.stack([flat_inds % args().centermap_size, torch.div(
                 flat_inds, args().centermap_size, rounding_mode='floor')], 1)
             outputs['centers_conf'] = self.parameter_sampling(

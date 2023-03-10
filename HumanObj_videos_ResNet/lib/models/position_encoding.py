@@ -14,11 +14,11 @@ class PositionEmbeddingLearned(nn.Module):
     """
     Absolute pos embedding, learned.
     """
-    def __init__(self, num_pos_feats=256):
+    def __init__(self, num_pos_feats=128):
         super().__init__()
-        self.row_embed = nn.Embedding(128, num_pos_feats) # the first dimension of the embedding should at least be image height
-                                                          # Backbone output is of size b, c, 128, 128
-        self.col_embed = nn.Embedding(128, num_pos_feats)
+        self.row_embed = nn.Embedding(64, num_pos_feats) # the first dimension of the embedding should at least be image height
+                                                         # Backbone output is of size b, c, 128, 128
+        self.col_embed = nn.Embedding(64, num_pos_feats)
         self.reset_parameters()
 
     def reset_parameters(self):

@@ -104,7 +104,7 @@ def parse_args(input_args=None):
     loss_group.add_argument('--loss_thresh',default=1000,type=float,help = 'max loss value for a single loss')
     loss_group.add_argument('--max_supervise_num',default=-1,type=int,help = 'max person number supervised in each batch for stable GPU memory usage')
     loss_group.add_argument('--supervise_cam_params',type = bool,default = False)
-    loss_group.add_argument('--match_preds_to_gts_for_supervision',type = bool,default = False,help = 'whether to match preds to gts for supervision')
+    loss_group.add_argument('--match_preds_to_gts_for_supervision',type = bool,default = True,help = 'whether to match preds to gts for supervision')
     loss_group.add_argument('--matching_mode', type=str, default='all',help='all | random_one | ')
     loss_group.add_argument('--supervise_global_rot',type = bool,default = False,help = 'whether supervise the global rotation of the estimated SMPL model')
     loss_group.add_argument('--HMloss_type', type=str, default='MSE', help='supervision for 2D pose heatmap: MSE or focal loss')

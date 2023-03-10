@@ -20,32 +20,61 @@ class Image_processor(Predictor):
         super(Image_processor, self).__init__(**kwargs)
         self.__initialize__()
 
+    def get_prev_frame(self,frame_index):
+        if frame_index-10 >= 0:
+            prev_frame = random.choice(
+                list(range(frame_index-10, frame_index)))
+        elif frame_index > 0:
+            prev_frame = random.choice(list(range(0, frame_index)))
+        elif frame_index == 0:
+            prev_frame = random.choice(list(range(0, frame_index+1)))
+
+        return prev_frame
+
+    def get_frame_index(self, root, data_class, img_name):
+        if data_class == 'pw3d':
+            img_num = img_name.split("_")[1]
+            frame_index = int(img_num.split(".")[0])
+            prev_frame = self.get_prev_frame(frame_index)
+
+            prev_frame_path = os.path.join(root, "image_"+"0"*(5-len(str(prev_frame)))+str(prev_frame)+".jpg")
+        elif data_class == 'mpiinf':  
+            img_num = img_name.split("_")[-1]
+            frame_index = int(img_num.split(".")[0][1:])
+            prev_frame = frame_index-10
+            
+            prev_frame_path = os.path.join(root,"_".join(img_name.split("_")[:-1])+"_F"+"0"*(6-len(str(prev_frame)))+str(prev_frame)+".jpg")
+            if not os.path.exists(prev_frame_path):
+                prev_frame = frame_index
+                prev_frame_path = os.path.join(root,"_".join(img_name.split("_")[:-1])+"_F"+"0"*(6-len(str(prev_frame)))+str(prev_frame)+".jpg")
+
+
+        return frame_index, prev_frame_path
+
+    # TO DO: Correct naming here
+
     def get_window(self, img_info, **kwargs):
         """
         Loads the frames around a specific index.
-        """            
+        """
         meta_data = list()
-        for i,path in enumerate(img_info['imgpath']):
+        for i, path in enumerate(img_info['imgpath']):
             img_path = img_info['imgpath'][i]
-            # video_name = img_info['video_name'][i] 
-            dataset = dataset_dict[img_info['data_set'][i]](**kwargs)       
+            dataset = dataset_dict[img_info["data_set"][i]](**kwargs)
             path = img_path.split('/')
-            # print(path,'path')
             root = "/".join(path[:-1])
-            img_num = path[-1][5:]
-            frame_index = int(img_num.split(".")[0])
+            frame_index = path[-1].split(".")[0][5:]
+            prev_frame_path = root + "/image{}.jpg".format(int(frame_index)-1)
+            print(frame_index,prev_frame_path,dataset)
 
-            if frame_index-10>=0:
-                prev_frame = random.choice(list(range(frame_index-10,frame_index)))
-            elif frame_index>0:
-                prev_frame = random.choice(list(range(0,frame_index)))
-            elif frame_index==0:
-                prev_frame = random.choice(list(range(0,frame_index+1)))
-                 
-            prev_frame_path = os.path.join(root,"image"+str(prev_frame)+".jpg")
-            prev_image = dataset.get_prev_image(prev_frame_path, input_size=args().input_size, single_img_input=True)
-            meta_data.append(prev_image) 
-                                                         
+
+
+            prev_image = dataset.get_image_from_video_name(prev_frame_path)
+            if prev_image==None:
+                meta_data.append(img_info['image'][i])
+            else:
+                meta_data.append(prev_image)
+
         return meta_data
     
     @torch.no_grad()
@@ -65,6 +94,7 @@ class Image_processor(Predictor):
         counter.start()
         results_all = {}
         for test_iter,meta_data in enumerate(internet_loader):
+            print(meta_data.keys())
             # meta_data['image'] = meta_data['image'].permute(0,3,1,2)
             # window_meta_data = self.get_window(meta_data)
             
@@ -79,9 +109,8 @@ class Image_processor(Predictor):
             # plt.imshow(meta_data['image'][0].permute(1,2, 0), cmap = "gray")
             # plt.savefig("test.png")
             
-            print(self.demo_cfg)
+            print('cfg',self.demo_cfg)
             outputs = self.net_forward(meta_data, window_meta_data, cfg=self.demo_cfg)
-            print(outputs.keys(),1)
             
             reorganize_idx = outputs['reorganize_idx'].cpu().numpy()
             counter.count(self.val_batch_size)
@@ -98,11 +127,14 @@ class Image_processor(Predictor):
                 # print(show_items_list)
                 results_dict, img_names = self.visualizer.visulize_result(outputs, outputs['meta_data'], \
                     show_items=show_items_list, vis_cfg={'settings':['put_org']}, save2html=False)
-
+                
+                print(outputs.keys())
+                print(outputs['centers_pred'])
                 print(outputs['detection_flag'])
                 print(results_dict.keys())
 
-                for img_name, mesh_rendering_orgimg in zip(img_names, results_dict['mesh_rendering_orgimgs']['figs']):
+                # for img_name, mesh_rendering_orgimg in zip(img_names, results_dict['mesh_rendering_orgimgs']['figs']):
+                for img_name, mesh_rendering_orgimg in zip(img_names, results_dict['centermap']['figs']):
                     save_name = os.path.join(self.output_dir, os.path.basename(img_name))
                     cv2.imwrite(save_name, cv2.cvtColor(mesh_rendering_orgimg, cv2.COLOR_RGB2BGR))
 

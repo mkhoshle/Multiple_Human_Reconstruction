@@ -144,7 +144,7 @@ class PW3D(Image_base):
         subject_ids, genders, kp2ds, kp3ds, params, bbox, valid_mask_2d, valid_mask_3d = [[] for i in range(8)]
         for inds, annot in enumerate(annots):
             video_name, gender, person_id, frame_id, kp2d, kp3d, pose_param, beta_param = annot
-            print(kp3d.shape,'00')
+            # print(kp3d.shape,'00')
             subject_ids.append(person_id)
             genders.append(gender)
             if not self.regress_smpl:
@@ -156,12 +156,8 @@ class PW3D(Image_base):
             valid_mask_2d.append([True,False,False])
             valid_mask_3d.append([True,True,True,True])
 
-        # print(kp3d.shape,'000')
-        print(self.regress_smpl,kp3ds)
         kp2ds, kp3ds, params = np.array(kp2ds), np.array(kp3ds), np.array(params)
-        valid_mask_2d, valid_mask_3d = np.array(valid_mask_2d), np.array(valid_mask_3d)       
-        
-        
+        valid_mask_2d, valid_mask_3d = np.array(valid_mask_2d), np.array(valid_mask_3d)           
         
         if self.regress_smpl:
             kp3ds = []
@@ -171,7 +167,7 @@ class PW3D(Image_base):
                 kp3ds.append(smpl_outs['j3d'].numpy())
             kp3ds = np.concatenate(kp3ds, 0)
             
-        print(kp3ds.shape,11)
+        # print(kp3ds.shape,11)
         imgpath = os.path.join(self.image_dir,video_name,'image_{:05}.jpg'.format(frame_id))
         image = cv2.imread(imgpath)[:,:,::-1].copy()
 
@@ -180,7 +176,7 @@ class PW3D(Image_base):
         kp3ds -= root_trans[:,None]
         kp3ds[~valid_masks] = -2.
         
-        print(kp3ds[0].shape,22)
+        # print(kp3ds[0].shape,22)
         img_info = {'imgpath': imgpath, 'image': image, 'kp2ds': kp2ds, 'track_ids': subject_ids,\
                     'vmask_2d': valid_mask_2d, 'vmask_3d': valid_mask_3d,\
                     'kp3ds': kp3ds, 'params': params, 'img_size': image.shape[:2], 'ds':self.dataset_name, 

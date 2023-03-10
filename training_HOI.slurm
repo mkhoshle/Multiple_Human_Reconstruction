@@ -25,7 +25,7 @@ export WANDB_CACHE_DIR=/z/home/mkhoshle/Human_object_transform
 
 echo `nvidia-smi`
 #Transfer data to the local node
-rsync -avP /z/home/mkhoshle/dataset/ROMP_datasets/mpi_inf_3dhp $TMPDIR
+rsync -avP /z/home/mkhoshle/dataset/ROMP_datasets/3DPW  $TMPDIR
 
 TRAIN_CONFIGS='configs/v1.yml'
 GPUS=$(cat $TRAIN_CONFIGS | shyaml get-value ARGS.GPUS)

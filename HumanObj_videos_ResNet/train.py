@@ -193,7 +193,7 @@ class Trainer(Base):
             window_meta_data = self.get_window(meta_data)
             window_meta_data = torch.stack(window_meta_data,axis=0)
 
-            #torch.cuda.reset_peak_memory_stats(device=0)
+            torch.cuda.reset_peak_memory_stats(device=0)
             self.global_count += 1
             if args().new_training:
                 if self.global_count==args().new_training_iters:
@@ -229,19 +229,20 @@ class Trainer(Base):
         for ds_name, val_loader in self.dataset_val_list.items():
             logging.info('Evaluation on {}'.format(ds_name))
             print("drop_last", val_loader.drop_last)
-            MPJPE, PA_MPJPE, eval_results = val_result(
-                self, loader_val=val_loader, evaluation=False)
-            if ds_name == 'pw3d' and PA_MPJPE < self.val_best_PAMPJPE['pw3d']:
-                self.val_best_PAMPJPE['pw3d'] = PA_MPJPE
-                _, _, eval_results = val_result(
-                    self, loader_val=self.dataset_test_list['pw3d'], evaluation=True)
-                self.summary_writer.add_scalars(
-                    'pw3d-vibe-test', eval_results, self.global_count)
-            if ds_name == 'mpiinf':
-                _, _, eval_results = val_result(
-                    self, loader_val=self.dataset_test_list['mpiinf'], evaluation=True)
-                self.summary_writer.add_scalars(
-                    'mpiinf-test', eval_results, self.global_count)
+
+            MPJPE, PA_MPJPE, eval_results = val_result(self, loader_val=val_loader, evaluation=False)
+            test_flag = False
+            if ds_name in self.dataset_test_list:
+                test_flag = True
+                if ds_name in self.val_best_PAMPJPE:
+                    if PA_MPJPE<self.val_best_PAMPJPE[ds_name]:
+                        self.val_best_PAMPJPE[ds_name] = PA_MPJPE
+                    else:
+                        test_flag = False
+
+            if test_flag or self.test_interval<100:
+                eval_results = val_result(self,loader_val=self.dataset_test_list[ds_name], evaluation=True)
+#                self.summary_writer.add_scalars('{}-test'.format(ds_name), eval_results, self.global_count)
 
             self.evaluation_results_dict[ds_name]['MPJPE'].append(MPJPE)
             self.evaluation_results_dict[ds_name]['PAMPJPE'].append(PA_MPJPE)
@@ -250,6 +251,9 @@ class Trainer(Base):
             ds_running_results = self.get_running_results(ds_name)
             print('Running MPJPE:{}|{}; Running PAMPJPE:{}|{}'.format(
                 *ds_running_results))
+            wandb.log({'mpjpe_mean': ds_running_results[0],'mpjpe_var': ds_running_results[1],
+                       'pampjpe_mean': ds_running_results[2], "pampjpe_var": ds_running_results[3]})
+
 
         title = '{}_{:.4f}_{:.4f}_{}.pkl'.format(
             epoch, MPJPE, PA_MPJPE, self.tab)

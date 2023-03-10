@@ -125,13 +125,26 @@ COCO_18 = {
     'L_Wrist':7, 'R_Hip': 8, 'R_Knee':9, 'R_Ankle':10, 'L_Hip':11, 'L_Knee':12, 'L_Ankle':13, \
     'R_Eye':14, 'L_Eye':15, 'R_Ear':16, 'L_Ear':17,
     }
+
+
+
 Panoptic_19 = {
     'Neck':0, 'Nose':1, 'Pelvis':2, 'L_Shoulder':3, 'L_Elbow':4, 'L_Wrist':5, 'L_Hip':6, \
     'L_Knee':7, 'L_Ankle':8, 'R_Shoulder': 9, 'R_Elbow':10, 'R_Wrist':11, 'R_Hip':12, 'R_Knee':13, 'R_Ankle':14, \
     'L_Eye':15, 'L_Ear':16, 'R_Eye':17, 'R_Ear':18}
+
+Panoptic_17 = {
+    'Neck':0, 'Nose':1, 'Pelvis':2, 'L_Shoulder':3, 'L_Elbow':4, 'L_Wrist':5, 'L_Hip':6, \
+    'L_Knee':7, 'L_Ankle':8, 'R_Shoulder': 9, 'R_Elbow':10, 'R_Wrist':11, 'R_Hip':12, 'R_Knee':13, 'R_Ankle':14, \
+    'L_Eye':15, 'L_Ear':16, 'R_Eye':17, 'R_Ear':18}
+
 Panoptic_15 = {
     'Neck':0, 'Head_top':1, 'Pelvis':2, 'L_Shoulder':3, 'L_Elbow':4, 'L_Wrist':5, 'L_Hip':6, \
-    'L_Knee':7, 'L_Ankle':8, 'R_Shoulder': 9, 'R_Elbow':10, 'R_Wrist':11, 'R_Hip':12, 'R_Knee':13, 'R_Ankle':14
+    'L_Knee':7, 'L_Ankle':8, 'R_Shoulder': 9, 'R_Elbow':10, 'R_Wrist':11, 'R_Hip':12, 'R_Knee':13, 'R_Ankle':14}
+
+Panoptic_14 = {
+    'Neck':0, 'Pelvis':1, 'L_Shoulder':2, 'L_Elbow':3, 'L_Wrist':4, 'L_Hip':5, \
+    'L_Knee':6, 'L_Ankle':7, 'R_Shoulder':8, 'R_Elbow':9, 'R_Wrist':10, 'R_Hip':11, 'R_Knee':12, 'R_Ankle':13 \
     }
 
 

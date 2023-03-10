@@ -25,8 +25,8 @@ class CMU_Panoptic_train(Image_base):
 
         previous_sample_num = len(self.file_paths)
 
-        self.kp2d_mapper = constants.joint_mapping(constants.Panoptic_17,constants.Panoptic_54)
-        self.kp3d_mapper = constants.joint_mapping(constants.Panoptic_17,constants.Panoptic_54)
+        self.joint_mapper = constants.joint_mapping(constants.Panoptic_14,constants.SMPL_ALL_54)
+        self.joint3d_mapper = constants.joint_mapping(constants.Panoptic_17,constants.SMPL_ALL_54)
         
        
         logging.info('CMU Panoptic dataset {} set, total {} samples'.format(set_name, self.__len__()))
@@ -91,7 +91,7 @@ class CMU_Panoptic_train(Image_base):
             invis_3dkps = kp3d[:,-1]<0.1
             kp3d = kp3d[:,:3]
             kp3d[invis_3dkps] = -2.
-            kp3d = kp3d[self.J24_TO_H36M]
+            kp3d = self.map_kps(kp3d[self.J24_TO_H36M],maps=self.joint3d_mapper)
             kp3d[0] -= np.array([0.0,0.06,0.0]) #fix the skeleton misalign
             kp_3ds.append(kp3d)
             valid_mask_3d.append([True,True,True,True])
