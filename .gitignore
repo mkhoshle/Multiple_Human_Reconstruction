@@ -1,0 +1,22 @@
+# Ignore hidden files and folders
+.*
+
+# Ignore build output files
+build/
+*.log
+*.out
+*.exe
+*.o
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+HumanObj_pretrain_ResNet/
+demo/
+wandb/
+results/
+active_configs/
+configs/
+
+
+
