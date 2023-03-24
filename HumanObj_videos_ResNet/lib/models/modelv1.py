@@ -23,6 +23,7 @@ from models.position_encoding import build_position_encoding
 
 BN_MOMENTUM = 0.1
 
+
 class HOBJ(Base):
     def __init__(self, backbone=None, **kwargs):
         super(HOBJ, self).__init__()
@@ -40,6 +41,12 @@ class HOBJ(Base):
         self.output_proj1 = nn.Conv2d(self.hidden_dim, self.output_cfg['NUM_CENTER_MAP'], kernel_size=1)
         self.output_proj2 = nn.Conv2d(self.hidden_dim, self.output_cfg['NUM_CAM_MAP'], kernel_size=1)
         self.output_proj3 = nn.Conv2d(self.hidden_dim, self.output_cfg['NUM_PARAMS_MAP'], kernel_size=1)
+
+        self.bn1 = nn.BatchNorm2d(self.hidden_dim, momentum=BN_MOMENTUM)
+        self.bn2 = nn.BatchNorm2d(self.hidden_dim, momentum=BN_MOMENTUM)
+        self.bn3 = nn.BatchNorm2d(self.hidden_dim, momentum=BN_MOMENTUM)
+
+        self.relu = nn.ReLU(inplace=True)
 
         if args().model_return_loss:
             self._calc_loss = Loss()
@@ -94,11 +101,22 @@ class HOBJ(Base):
         # print(src.shape,window_src.shape,pos.shape,window_pos.shape,333)   
 
         hs, hs_without_norm, memory = self.transformer(src, pos, window_src, window_pos)
-             
-        center_maps = self.output_proj1(hs)
-        cam_maps = self.output_proj2(hs)
-        params_maps = self.output_proj3(hs)
-        
+            
+        center_maps = self.bn1(hs)
+        center_maps = self.relu(center_maps)
+        center_maps = self.output_proj1(center_maps)
+        # print(center_maps.shape,'c3')
+
+        cam_maps = self.bn2(hs)
+        cam_maps = self.relu(cam_maps)
+        cam_maps = self.output_proj2(cam_maps)
+        # print(cam_maps.shape,'cam')
+
+        params_maps = self.bn3(hs)
+        params_maps = self.relu(params_maps)
+        params_maps = self.output_proj3(params_maps)
+        # print(params_maps.shape,'params')
+
         # print(center_maps.shape,cam_maps.shape,params_maps.shape,555)
         
         # to make sure that scale is always a positive value

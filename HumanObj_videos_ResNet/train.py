@@ -18,6 +18,7 @@ np.set_printoptions(precision=2, suppress=True)
 
 
 torch.backends.cudnn.enabled = False
+
 dataset_dict = {'crowdhuman': CrowdHuman, 'cmup': CMU_Panoptic_eval, 'crowdpose': Crowdpose, 'coco': COCO14,
                 'mpii': MPII, 'lsp': LSP, 'mpiinf': MPI_INF_3DHP, 'pw3d': PW3D}
 wandb.login()
@@ -89,6 +90,8 @@ class Trainer(Base):
         if not self.model_return_loss:
             outputs.update(self._calc_loss(outputs))
         loss, outputs = self.mutli_task_uncertainty_weighted_loss(outputs)
+        # print(outputs.keys())
+        # print(loss)
 
         if self.model_precision == 'fp16':
             self.scaler.scale(loss).backward()
