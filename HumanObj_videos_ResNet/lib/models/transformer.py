@@ -44,9 +44,9 @@ class Transformer(nn.Module):
     def _reset_parameters(self):
         for p in self.parameters():
             if p.dim() > 1:
-                # nn.init.xavier_uniform_(p)
+                nn.init.xavier_uniform_(p)
                 # He Initialization:
-                nn.init.kaiming_uniform_(p, mode='fan_in', nonlinearity='relu')
+                # nn.init.kaiming_uniform_(p, mode='fan_in', nonlinearity='relu')
                 # Glorot Initialization:
                 # nn.init.xavier_normal_(p, gain=nn.init.calculate_gain('relu'))
                 # Orthogonal Initialization:

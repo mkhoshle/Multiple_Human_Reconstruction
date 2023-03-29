@@ -1,7 +1,6 @@
 
 ARGS:
  tab: 'V1' 
-#  dataset: 'cmup'
  dataset: 'pw3d'
  GPUS: 0
  distributed_training: False
@@ -19,8 +18,8 @@ ARGS:
  exp: 'HOI_VANILLA'              # experiment name
  save_dir: './results'           # Path to results directory
  
- hidden_dim: 16                  # This should be divisible by the number of heads
- hidden_dim_pos: 16
+ hidden_dim: 64                  # This should be divisible by the number of heads
+ hidden_dim_pos: 64
  position_embedding: "learned"
  lr_backbone: 0.00001
  masks: False
@@ -29,8 +28,10 @@ ARGS:
 #  backbone: 'resnet_fpn_backbone'     This is for Faster-RCNN
  dilation: False
  dropout: 0.1
- nheads: 4
+ nheads: 8
  dim_feedforward: 256
+
+
  enc_layers: 3
  dec_layers: 3
  pre_norm: True
@@ -58,7 +59,8 @@ ARGS:
  resnet_pretrain: "trained_models/pretrain_resnet.pkl"
 #  resnet_pretrain: "trained_models/checkpoint_det_ResNet_Backbone.pkl"  # This is for Faster-RCNN
 #  hrnet_pretrain: "trained_models/pretrain_hrnet.pkl"
- model_path: "/z/home/mkhoshle/checkpoints/resnet_cm32_V1_on_gpu0,1,2,3,4,5,6,7_val/resnet_cm32_V1_epoch_8.pkl"
+#  model_path: "/z/home/mkhoshle/checkpoints/resnet_cm32_V1_on_gpu0,1,2,3,4,5,6,7_val/resnet_cm32_V1_epoch_8.pkl"
+ model_path: ""
  output_dir: 'demo/image_results'
  save_mesh: True
  save_centermap: True
