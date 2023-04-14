@@ -15,7 +15,7 @@ ARGS:
  nw_eval: 4             
  lr: 0.00001
  use_wandb: True
- exp: 'HOI_VANILLA'              # experiment name
+ exp: 'HOI_pool_64_relu'              # experiment name
  save_dir: './results'           # Path to results directory
  
  hidden_dim: 64                  # This should be divisible by the number of heads

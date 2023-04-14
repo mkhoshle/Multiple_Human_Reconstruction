@@ -36,7 +36,8 @@ class HOBJ(Base):
         # self.input_proj = nn.Conv2d(256, 64, kernel_size=1)    # This is for Faster-RCNN
         # self.input_proj = nn.Conv2d(64, 64, kernel_size=8,stride=8)  # 16*16 heatmap
         # self.input_proj = nn.Conv2d(64, 16, kernel_size=3,stride=2,padding=1)
-        self.input_proj = nn.Conv2d(64, 64, kernel_size=3,stride=4,padding=1)  # 32 heatmap size
+        # self.input_proj = nn.Conv2d(64, 64, kernel_size=3,stride=4,padding=1)  # 32 heatmap size
+        self.pool = nn.MaxPool2d(kernel_size=4, stride=4)
         # self.input_proj = nn.Conv2d(64, 16, kernel_size=3,stride=2,padding=1)  # 64 heatmap size
         self.output_proj1 = nn.Conv2d(self.hidden_dim, self.output_cfg['NUM_CENTER_MAP'], kernel_size=1)
         self.output_proj2 = nn.Conv2d(self.hidden_dim, self.output_cfg['NUM_CAM_MAP'], kernel_size=1)
@@ -86,7 +87,7 @@ class HOBJ(Base):
         src = self.backbone(meta_data)
 
         # print(src.shape)
-        src = self.input_proj(src)   
+        src = self.pool(src)   
         # position encoding        
         pos = self.position_embedding(src)
 
@@ -95,7 +96,7 @@ class HOBJ(Base):
         # window_meta_data = window_meta_data.permute(0,3,1,2)
         # window_src = self.backbone(window_meta_data)['pool']  # This is for Faster-RCNN
         window_src = self.backbone(window_meta_data)  
-        window_src = self.input_proj(window_src)
+        window_src = self.pool(window_src)
         window_pos = self.position_embedding(window_src)
 
         # print(src.shape,window_src.shape,pos.shape,window_pos.shape,333)   
@@ -104,19 +105,19 @@ class HOBJ(Base):
             
         # print(hs.shape,444)
 
-        # center_maps = self.bn1(hs)
-        # center_maps = self.relu(center_maps)
-        center_maps = self.output_proj1(hs)
+        center_maps = self.bn1(hs)
+        center_maps = self.relu(center_maps)
+        center_maps = self.output_proj1(center_maps)
         # print(center_maps.shape,'c3')
 
-        # cam_maps = self.bn2(hs)
-        # cam_maps = self.relu(cam_maps)
-        cam_maps = self.output_proj2(hs)
+        cam_maps = self.bn2(hs)
+        cam_maps = self.relu(cam_maps)
+        cam_maps = self.output_proj2(cam_maps)
         # print(cam_maps.shape,'cam')
 
-        # params_maps = self.bn3(hs)
-        # params_maps = self.relu(params_maps)
-        params_maps = self.output_proj3(hs)
+        params_maps = self.bn3(hs)
+        params_maps = self.relu(params_maps)
+        params_maps = self.output_proj3(params_maps)
         # print(params_maps.shape,'params')
 
         # print(center_maps.shape,cam_maps.shape,params_maps.shape,555)

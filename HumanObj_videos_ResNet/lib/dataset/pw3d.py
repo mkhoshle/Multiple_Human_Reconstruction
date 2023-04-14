@@ -26,6 +26,7 @@ class PW3D(Image_base):
         self.val_sample_ratio = 5
         self.scale_range = [1.56,1.8]
         self.dataset_name = {'PC':'pw3d_pc', 'NC':'pw3d_nc','OC':'pw3d_oc','vibe':'pw3d_vibe', 'normal':'pw3d_normal'}[mode]
+ 
 
         logging.info('Start loading 3DPW data.')
         if mode in ['normal','PC']:
