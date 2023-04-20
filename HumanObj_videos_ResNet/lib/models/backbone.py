@@ -29,14 +29,17 @@ from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 BN_MOMENTUM = 0.1
 
 
-
-
 Backbones = {'hrnet': HigherResolutionNet, 'resnet': ResNet_50}
 
-class Joiner(nn.Sequential):
+class Joiner(nn.Module):
     def __init__(self, backbone):
-        super().__init__(backbone)
-        self.backbone = backbone
+        if args().backbone in Backbones:
+            super().__init__(backbone)
+            self.backbone = backbone
+        else:
+            super(Joiner, self).__init__()
+            self.backbone = backbone
+        
         # self.position_embedding = position_embedding
 
     def forward(self, tensor):
@@ -56,14 +59,17 @@ def build_backbone(args):
     if args().backbone in Backbones:
         backbone = Backbones[args().backbone]()
     elif args().backbone=="resnet_fpn_backbone":
-        backbone = resnet_fpn_backbone('resnet50', pretrained=False, trainable_layers=5)
+        backbone = resnet_fpn_backbone('resnet50', pretrained=False)
         if os.path.exists(args().resnet_pretrain):
             checkpoint = torch.load(args().resnet_pretrain)
+            new_backbone = resnet_fpn_backbone('resnet50', pretrained=False)
             for key in list(checkpoint.keys()):
                 if 'backbone.' in key:
                     checkpoint[key.replace('backbone.', '')] = checkpoint[key]
                     del checkpoint[key]
-            backbone = backbone.load_state_dict(checkpoint)
+
+            new_backbone.load_state_dict(checkpoint)
+            backbone = new_backbone
         
     
     model = Joiner(backbone)
