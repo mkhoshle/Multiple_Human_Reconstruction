@@ -86,8 +86,11 @@ class Image_base(Dataset):
         image_ = cv2.imread(imgpath)[:,:,::-1].copy()
         scale, rot, flip, color_jitter, syn_occlusion = self._calc_csrfe()
         mp_mode = self._check_mp_mode_() 
+        # print(mp_mode,image_.shape)
+
         img_info = process_image(image_, full_kp2ds=None, augments=(scale, rot, flip), is_pose2d=None, multiperson=mp_mode)
-        
+        # print(img_info)
+
         image, image_wbg, full_kps, offsets = img_info
         
         _, dst_image, org_image = self.prepare_image(image, image_wbg, augments=(color_jitter, syn_occlusion))

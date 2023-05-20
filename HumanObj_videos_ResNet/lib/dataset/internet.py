@@ -43,7 +43,6 @@ class Internet(Dataset):
 
         return input_data
 
-
     def __len__(self):
         return len(self.file_paths)
 
@@ -54,6 +53,14 @@ class Internet(Dataset):
             print(error)
             index = np.random.randint(len(self))
             return self.get_item_single_frame(index)
+        
+    def get_image_from_video_name(self,imgpath,curr_imgpath):
+        # print(imgpath,curr_imgpath)
+        if os.path.exists(imgpath):
+            return imgpath 
+        else:
+            return curr_imgpath
+                
 
 def img_preprocess(image, imgpath=None, input_size=512, ds='internet', single_img_input=False):
     image = image[:,:,::-1]
