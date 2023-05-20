@@ -12,6 +12,7 @@ import glob
 from utils.util import collect_image_list
 from lib.dataset.internet import Internet
 import matplotlib.pyplot as plt
+from PIL import Image
 
 dataset_dict = {'internet':Internet}
 
@@ -22,60 +23,42 @@ class Image_processor(Predictor):
 
     def get_prev_frame(self,frame_index):
         if frame_index-10 >= 0:
-            prev_frame = random.choice(
-                list(range(frame_index-10, frame_index)))
+            prev_frame = frame_index-10
         elif frame_index > 0:
-            prev_frame = random.choice(list(range(0, frame_index)))
+            prev_frame = frame_index-1
         elif frame_index == 0:
-            prev_frame = random.choice(list(range(0, frame_index+1)))
+            prev_frame = frame_index
 
         return prev_frame
 
     def get_frame_index(self, root, data_class, img_name):
-        if data_class == 'pw3d':
-            img_num = img_name.split("_")[1]
-            frame_index = int(img_num.split(".")[0])
-            prev_frame = self.get_prev_frame(frame_index)
-
-            prev_frame_path = os.path.join(root, "image_"+"0"*(5-len(str(prev_frame)))+str(prev_frame)+".jpg")
-        elif data_class == 'mpiinf':  
-            img_num = img_name.split("_")[-1]
-            frame_index = int(img_num.split(".")[0][1:])
-            prev_frame = frame_index-10
-            
-            prev_frame_path = os.path.join(root,"_".join(img_name.split("_")[:-1])+"_F"+"0"*(6-len(str(prev_frame)))+str(prev_frame)+".jpg")
-            if not os.path.exists(prev_frame_path):
-                prev_frame = frame_index
-                prev_frame_path = os.path.join(root,"_".join(img_name.split("_")[:-1])+"_F"+"0"*(6-len(str(prev_frame)))+str(prev_frame)+".jpg")
-
-
+        
+        img_num = img_name.split("_")[1]
+        frame_index = int(img_num.split(".")[0])
+        
+        prev_frame = self.get_prev_frame(frame_index)
+        
+        prev_frame_path = os.path.join(root, "image-"+"0"*(3-len(str(prev_frame)))+str(prev_frame)+".png")
+        
         return frame_index, prev_frame_path
-
-    # TO DO: Correct naming here
-
+    
     def get_window(self, img_info, **kwargs):
         """
         Loads the frames around a specific index.
         """
-        meta_data = list()
+        img_list = list()
         for i, path in enumerate(img_info['imgpath']):
             img_path = img_info['imgpath'][i]
+            # video_name = img_info['video_name'][i]
             dataset = dataset_dict[img_info["data_set"][i]](**kwargs)
             path = img_path.split('/')
             root = "/".join(path[:-1])
-            frame_index = path[-1].split(".")[0][5:]
-            prev_frame_path = root + "/image{}.jpg".format(int(frame_index)-1)
-            print(frame_index,prev_frame_path,dataset)
+            frame_index, prev_frame_path = self.get_frame_index(root,
+                img_info["data_set"][i], path[-1])
+            
+            img_list.append(dataset.get_image_from_video_name(prev_frame_path, img_path))
 
-
-
-            prev_image = dataset.get_image_from_video_name(prev_frame_path)
-            if prev_image==None:
-                meta_data.append(img_info['image'][i])
-            else:
-                meta_data.append(prev_image)
-
-        return meta_data
+        return img_list
     
     @torch.no_grad()
     def run(self, image_folder, tracker=None):
@@ -94,23 +77,23 @@ class Image_processor(Predictor):
         counter.start()
         results_all = {}
         for test_iter,meta_data in enumerate(internet_loader):
-            print(meta_data.keys())
-            # meta_data['image'] = meta_data['image'].permute(0,3,1,2)
-            # window_meta_data = self.get_window(meta_data)
+            # window_meta_data = meta_data['image']
             
-            window_meta_data = meta_data['image']
-            
-            # if len(window_meta_data)>1:
-            #     window_meta_data = torch.stack(window_meta_data,axis=0)
-            # else:
-            #     window_meta_data = window_meta_data[0]
-            print(meta_data['image'].shape,window_meta_data.shape)
-
-            # plt.imshow(meta_data['image'][0].permute(1,2, 0), cmap = "gray")
-            # plt.savefig("test.png")
+            window_list = self.get_window(meta_data)
+            prevframe_loader = iter(self._create_single_data_loader(dataset='internet', train_flag=False, file_list=window_list, shuffle=False))
+            window_meta_data = next(prevframe_loader)
+                     
+            print(meta_data['image'].shape,window_meta_data['image'].shape)
             
             print('cfg',self.demo_cfg)
-            outputs = self.net_forward(meta_data, window_meta_data, cfg=self.demo_cfg)
+            # pil_image = Image.fromarray(meta_data['image'])
+            # pil_image.save('output_image.jpg')
+            plt.figure()
+            plt.imsave('output_image.jpg',meta_data['image'][0].numpy())
+            # plt.show()
+            
+            
+            outputs = self.net_forward(meta_data, window_meta_data['image'], cfg=self.demo_cfg)
             
             reorganize_idx = outputs['reorganize_idx'].cpu().numpy()
             counter.count(self.val_batch_size)

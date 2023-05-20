@@ -80,6 +80,7 @@ def parse_args(input_args=None):
     model_group.add_argument('--enc_layers', type = int, default = 6, help = 'Number of encoding layers in the transformer')
     model_group.add_argument('--dec_layers', type = int, default = 6, help = 'Number of decoding layers in the transformer')
     
+    model_group.add_argument('--deformable', type = bool, default = False, help = 'Use deformable transformer or not')
     model_group.add_argument('--dim_feedforward', type = int, default = 2048, help = 'Size of the embeddings (dimension of the transformer)')
     model_group.add_argument('--nheads', type = int, default = 8, help = 'Number of attention heads inside the transformer attentions')
     model_group.add_argument('--num_feature_levels', type = int, default = 1, help = 'Number of feature levels the encoder processes from the backbone')
@@ -115,7 +116,7 @@ def parse_args(input_args=None):
     # 'agora',, 'mpiinf' ,'pw3d', 'jta','h36m','pw3d','pw3d_pc','oh','h36m' # 'mupots','oh','h36m','mpiinf_test','oh',
     eval_group.add_argument('--eval_datasets',type = str,default = 'pw3d',help = 'whether to run evaluation')
     eval_group.add_argument('--val_batch_size',default=64,help='valiation batch_size',type=int)
-    eval_group.add_argument('--test_interval',default=2000,help='interval iteration between validation',type=int)
+    eval_group.add_argument('--test_interval',default=10,help='interval iteration between validation',type=int)
     eval_group.add_argument('--fast_eval_iter',type = int,default = -1,help = 'whether to run validation on a few iterations, like 200.')
     eval_group.add_argument('--top_n_error_vis', type = int, default = 6, help = 'visulize the top n results during validation')
     eval_group.add_argument('--eval_2dpose',type = bool,default =False)

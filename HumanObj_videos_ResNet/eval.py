@@ -1,6 +1,7 @@
 from base import *
 from loss_funcs import calc_mpjpe, calc_pampjpe, align_by_parts
 from evaluation import h36m_evaluation_act_wise, cmup_evaluation_act_wise
+import wandb
 
 
 @torch.no_grad()
@@ -94,6 +95,17 @@ def val_result(self, loader_val, evaluation=False):
                                             vis_cfg={'settings': ['save_img'], 'vids': vis_ids, 'save_dir': self.result_img_dir, 'save_name': save_name}, kp3ds=(*aligned_poses, bones))  # 'org_img',
             #self.summary_writer.add_images('eval_results', vis_eval_results[:,:,:,::-1], self.global_count, dataformats='NHWC')
             # self.visualizer.add_mesh_to_writer(self.summary_writer,outputs['verts'][:vis_num],'eval_verts')
+
+        # print(outputs.keys())
+        show_items_list = ['org_img', 'mesh', 'pj2d', 'centermap']
+        results_dict, img_names = self.visualizer.visulize_result(outputs, outputs['meta_data'], \
+                    show_items=show_items_list, vis_cfg={'settings':['put_org']}, save2html=False)
+        if args().use_wandb:
+            cm = [torch.tensor(x).permute(2,0,1) for x in results_dict['centermap']['figs']]
+            wandb.log({'Heatmaps':[wandb.Image(cm[0].permute(1, 2, 0).numpy(), caption="Epoch:"+str(iter))]})
+            mr = [torch.tensor(x).permute(2,0,1) for x in results_dict['mesh_rendering_orgimgs']['figs']]
+            wandb.log({'Mesh_Rensering':[wandb.Image(mr[0].permute(1, 2, 0).numpy(), caption="Epoch:"+str(iter))]})
+
 
     print('{} on local_rank {}'.format(
         ['Evaluation' if evaluation else 'Validation'], self.local_rank))

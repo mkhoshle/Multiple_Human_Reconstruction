@@ -10,6 +10,7 @@ from lib.dataset.mpi_inf_3dhp import MPI_INF_3DHP
 import wandb
 import glob
 import os
+import torchvision
 
 from base import *
 from eval import val_result
@@ -45,8 +46,10 @@ class Trainer(Base):
     def train(self):
         if args().use_wandb:
             path = "/z/home/mkhoshle/Human_object_transform"
+            config_file = path + "/configs/v1.yml"
             wandb.init(project=args().dataset, dir=path,
-                       name=args().exp, entity='mkhoshle', config=args, settings=wandb.Settings(start_method="fork"))
+                       name=args().exp, entity='mkhoshle', config=args,
+                       settings=wandb.Settings(start_method="fork"))
 
             # Replace result dir with wandb unique id, much easier to find checkpoints
             run_id = wandb.run.id
@@ -190,7 +193,7 @@ class Trainer(Base):
         run_time, data_time, losses = [AverageMeter() for i in range(3)]
         losses_dict = AverageMeter_Dict()
         batch_start_time = time.time()
-
+        
         print(self.model_save_dir, '{}_epoch_{}.pkl'.format(self.tab, epoch))
         for iter_index, meta_data in enumerate(self.loader):
             window_meta_data = self.get_window(meta_data)
@@ -206,9 +209,19 @@ class Trainer(Base):
             run_start_time = time.time()
 
             outputs, loss = self.train_step(meta_data,window_meta_data)
-
+            
+            show_items_list = ['org_img', 'mesh', 'pj2d', 'centermap']
+            results_dict, img_names = self.visualizer.visulize_result(outputs, outputs['meta_data'], \
+                    show_items=show_items_list, vis_cfg={'settings':['put_org']}, save2html=False)
+            
             if args().use_wandb:
                 wandb.log({'epoch': epoch, 'loss': loss.item(),'metrics':outputs})
+                
+                cm = [torch.tensor(x).permute(2,0,1) for x in results_dict['centermap']['figs']]
+                wandb.log({'Heatmaps':[wandb.Image(cm[5].permute(1, 2, 0).numpy(), caption="Epoch:"+str(iter))]})
+                mr = [torch.tensor(x).permute(2,0,1) for x in results_dict['mesh_rendering_orgimgs']['figs']]
+                wandb.log({'Mesh_Rensering':[wandb.Image(mr[5].permute(1, 2, 0).numpy(), caption="Epoch:"+str(iter))]})
+
 
             if self.local_rank in [-1, 0]:
                 run_time.update(time.time() - run_start_time)
@@ -230,10 +243,13 @@ class Trainer(Base):
     def validation(self, epoch):
         logging.info('evaluation result on {} iters: '.format(epoch))
         for ds_name, val_loader in self.dataset_val_list.items():
+            print(ds_name, val_loader)
             logging.info('Evaluation on {}'.format(ds_name))
             print("drop_last", val_loader.drop_last)
 
             MPJPE, PA_MPJPE, eval_results = val_result(self, loader_val=val_loader, evaluation=False)
+            print("eval_results",MPJPE, PA_MPJPE, eval_results)
+
             test_flag = False
             if ds_name in self.dataset_test_list:
                 test_flag = True

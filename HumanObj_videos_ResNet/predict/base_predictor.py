@@ -23,10 +23,12 @@ class Predictor(Base):
         meta_data['batch_ids'] = torch.arange(len(meta_data['image']))
         if self.model_precision=='fp16':
             with autocast():
+                print("hereHEREHERE11")
                 outputs = self.model(meta_data, window_meta_data, **cfg)
         else:
             outputs = self.model(meta_data, window_meta_data, **cfg)
-            
+        
+        print(outputs['detection_flag'],"klkll")
         outputs['detection_flag'], outputs['reorganize_idx'] = justify_detection_state(outputs['detection_flag'], outputs['reorganize_idx'])
         meta_data.update({'imgpath':imgpath_org, 'data_set':ds_org})
         outputs['meta_data']['data_set'], outputs['meta_data']['imgpath'] = reorganize_items([ds_org, imgpath_org], outputs['reorganize_idx'].cpu().numpy())
