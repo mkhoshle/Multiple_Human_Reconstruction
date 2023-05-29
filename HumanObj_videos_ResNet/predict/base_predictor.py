@@ -23,7 +23,6 @@ class Predictor(Base):
         meta_data['batch_ids'] = torch.arange(len(meta_data['image']))
         if self.model_precision=='fp16':
             with autocast():
-                print("hereHEREHERE11")
                 outputs = self.model(meta_data, window_meta_data, **cfg)
         else:
             outputs = self.model(meta_data, window_meta_data, **cfg)

@@ -130,6 +130,7 @@ class ResultParser(nn.Module):
 
         # print(batch_ids,flat_inds,maps.shape,'Hey')
         results = maps[batch_ids, flat_inds].contiguous()
+        
         return results
 
     def reorganize_gts(self, meta_data, key_list, batch_ids):
@@ -161,13 +162,11 @@ class ResultParser(nn.Module):
 
     @torch.no_grad()
     def parse_maps(self, outputs, meta_data, cfg):
-        # print(outputs['center_map'].shape)
         center_preds_info = self.centermap_parser.parse_centermap_heatmap_adaptive_scale_batch(
             outputs['center_map'])
-        # print(center_preds_info)
+                
         batch_ids, flat_inds, cyxs, top_score = center_preds_info
 
-        # print(len(batch_ids), "len(batch_ids)")
         if len(batch_ids) == 0:
             if 'new_training' in cfg:
                 if cfg['new_training']:
@@ -178,6 +177,7 @@ class ResultParser(nn.Module):
 
             batch_ids, flat_inds = torch.zeros(1).long().to(outputs['center_map'].device), (torch.ones(
                 1)*self.map_size**2/2.).to(outputs['center_map'].device).long()
+            
             person_ids = batch_ids.clone()
             outputs['detection_flag'] = torch.Tensor(
                 [False for _ in range(len(batch_ids))]).cuda()
@@ -188,10 +188,8 @@ class ResultParser(nn.Module):
         if 'params_pred' not in outputs and 'params_maps' in outputs:
             outputs['params_pred'] = self.parameter_sampling(
                 outputs['params_maps'], batch_ids, flat_inds, use_transform=True)
-        if 'centers_pred' not in outputs:
-            # print(flat_inds)
-            # print(flat_inds, args().centermap_size, torch.div(flat_inds, args().centermap_size, rounding_mode='floor'))
             
+        if 'centers_pred' not in outputs:
             outputs['centers_pred'] = torch.stack([flat_inds % args().centermap_size, torch.div(
                 flat_inds, args().centermap_size, rounding_mode='floor')], 1)
             outputs['centers_conf'] = self.parameter_sampling(

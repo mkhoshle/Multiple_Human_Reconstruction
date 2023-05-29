@@ -81,22 +81,22 @@ class HOBJ(Base):
         meta_data = meta_data.contiguous().cuda()
         window_meta_data = window_meta_data.contiguous().cuda()
 
-        meta_data = meta_data.permute(0,3,1,2) 
-        src = self.backbone(meta_data)['2'] # This is for Faster-RCNN
+        # meta_data = meta_data.permute(0,3,1,2) 
+        # src = self.backbone(meta_data)['2'] # This is for Faster-RCNN
 
-        # src = self.backbone(meta_data)
-
-        # print(src.shape)
-        # src = self.pool(src)   
+        src = self.backbone(meta_data)
+        src = self.pool(src)   
         # position encoding        
         pos = self.position_embedding(src)
 
+        # print(self.position_embedding.row_embed.weight,4444)
+
         # print(src.shape,pos.shape,222)
         
-        window_meta_data = window_meta_data.permute(0,3,1,2)
-        window_src = self.backbone(window_meta_data)['2']  # This is for Faster-RCNN
-        # window_src = self.backbone(window_meta_data)  
-        # window_src = self.pool(window_src)
+        # window_meta_data = window_meta_data.permute(0,3,1,2)
+        # window_src = self.backbone(window_meta_data)['2']  # This is for Faster-RCNN
+        window_src = self.backbone(window_meta_data)  
+        window_src = self.pool(window_src)
         window_pos = self.position_embedding(window_src)
 
         # print(src.shape, window_src.shape, pos.shape, window_pos.shape, 333)   
@@ -128,7 +128,8 @@ class HOBJ(Base):
         output = {'params_maps':params_maps.float(), 
                   'center_map':center_maps.float()} 
         
-        # print(output['center_map'].shape,output['params_maps'].shape,666)        
+        # print(output['center_map'].shape,output['params_maps'].shape,666)     
+        # print(output['center_map'],666)  
         return output
 
 if __name__ == '__main__':

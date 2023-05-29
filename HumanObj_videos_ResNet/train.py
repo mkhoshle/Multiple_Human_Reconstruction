@@ -1,12 +1,4 @@
 from torch.autograd import Variable
-from lib.dataset.crowdhuman import CrowdHuman
-from lib.dataset.cmu_panoptic_eval import CMU_Panoptic_eval
-from lib.dataset.crowdpose import Crowdpose
-from lib.dataset.lsp import LSP
-from lib.dataset.coco14 import COCO14
-from lib.dataset.mpii import MPII
-from lib.dataset.pw3d import PW3D
-from lib.dataset.mpi_inf_3dhp import MPI_INF_3DHP
 import wandb
 import glob
 import os
@@ -19,9 +11,6 @@ np.set_printoptions(precision=2, suppress=True)
 
 
 torch.backends.cudnn.enabled = False
-
-dataset_dict = {'crowdhuman': CrowdHuman, 'cmup': CMU_Panoptic_eval, 'crowdpose': Crowdpose, 'coco': COCO14,
-                'mpii': MPII, 'lsp': LSP, 'mpiinf': MPI_INF_3DHP, 'pw3d': PW3D}
 wandb.login()
 
 
@@ -40,7 +29,7 @@ class Trainer(Base):
 
         self.train_cfg = {'mode': 'matching_gts', 'is_training': True, 'update_data': True, 'calc_loss': True if self.model_return_loss else False,
                           'new_training': args().new_training}
-        self.val_best_PAMPJPE = {'mpiinf': 80}
+        self.val_best_PAMPJPE = {'pw3d': 60, 'mpiinf': 80}
         logging.info('Initialization of Trainer finished!')
 
     def train(self):
@@ -93,8 +82,6 @@ class Trainer(Base):
         if not self.model_return_loss:
             outputs.update(self._calc_loss(outputs))
         loss, outputs = self.mutli_task_uncertainty_weighted_loss(outputs)
-        # print(outputs.keys())
-        # print(loss)
 
         if self.model_precision == 'fp16':
             self.scaler.scale(loss).backward()
@@ -199,6 +186,8 @@ class Trainer(Base):
             window_meta_data = self.get_window(meta_data)
             window_meta_data = torch.stack(window_meta_data,axis=0)
 
+            print(meta_data['image'].shape,window_meta_data.shape,111)
+
             torch.cuda.reset_peak_memory_stats(device=0)
             self.global_count += 1
             if args().new_training:
@@ -243,12 +232,10 @@ class Trainer(Base):
     def validation(self, epoch):
         logging.info('evaluation result on {} iters: '.format(epoch))
         for ds_name, val_loader in self.dataset_val_list.items():
-            print(ds_name, val_loader)
             logging.info('Evaluation on {}'.format(ds_name))
             print("drop_last", val_loader.drop_last)
 
             MPJPE, PA_MPJPE, eval_results = val_result(self, loader_val=val_loader, evaluation=False)
-            print("eval_results",MPJPE, PA_MPJPE, eval_results)
 
             test_flag = False
             if ds_name in self.dataset_test_list:

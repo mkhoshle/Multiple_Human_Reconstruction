@@ -110,6 +110,7 @@ class Image_base(Dataset):
         # print(info['imgpath'])
         # print(info['kp2ds'].shape,"kp2ds00")
         scale, rot, flip, color_jitter, syn_occlusion = self._calc_csrfe()
+        
         mp_mode = self._check_mp_mode_() 
 
         img_info = process_image(info['image'], info['kp2ds'], augments=(scale, rot, flip), is_pose2d=info['vmask_2d'][:,0], multiperson=mp_mode)

@@ -31,6 +31,18 @@ from visualization.visualization import Visualizer
 if args().model_precision == 'fp16':
     from torch.cuda.amp import autocast, GradScaler
 
+from lib.dataset.crowdhuman import CrowdHuman
+from lib.dataset.cmu_panoptic_eval import CMU_Panoptic_eval
+from lib.dataset.crowdpose import Crowdpose
+from lib.dataset.lsp import LSP
+from lib.dataset.coco14 import COCO14
+from lib.dataset.mpii import MPII
+from lib.dataset.pw3d import PW3D
+from lib.dataset.mpi_inf_3dhp import MPI_INF_3DHP
+
+dataset_dict = {'crowdhuman': CrowdHuman, 'cmup': CMU_Panoptic_eval, 'crowdpose': Crowdpose, 'coco': COCO14,
+                'mpii': MPII, 'lsp': LSP, 'mpiinf': MPI_INF_3DHP, 'pw3d': PW3D}
+
 
 class Base(object):
     def __init__(self, args_set=None):
@@ -50,12 +62,12 @@ class Base(object):
         logging.info('start building model.')
         model = build_model()
         if self.fine_tune or self.eval:
-            drop_prefix = ' '
+            drop_prefix = ''
             if self.model_version == 6:
                 model = load_model(
-                    self.model_path, model, prefix='module.', drop_prefix=drop_prefix, fix_loaded=True)
+                    self.model_path, model, prefix='', drop_prefix=drop_prefix, fix_loaded=True)
             else:
-                model = load_model(self.model_path, model, prefix='module.',
+                model = load_model(self.model_path, model, prefix='',
                                    drop_prefix=drop_prefix, fix_loaded=False)
                 train_entire_model(model)
 

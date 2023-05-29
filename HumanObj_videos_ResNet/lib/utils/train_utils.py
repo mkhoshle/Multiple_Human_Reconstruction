@@ -5,7 +5,6 @@ import numpy as np
 import logging
 
 def justify_detection_state(detection_flag, reorganize_idx):
-    print(detection_flag)
     if detection_flag.sum() == 0:
         detection_flag = False
     else:
@@ -57,14 +56,13 @@ def load_model(path, model, prefix = 'module.', drop_prefix='',optimizer=None, *
     if os.path.exists(path):
         pretrained_model = torch.load(path)
         current_model = model.state_dict()
-        # print(current_model['position_embedding.row_embed.weight'])
+        
         if isinstance(pretrained_model, dict):
             if 'model_state_dict' in pretrained_model:
                 pretrained_model = pretrained_model['model_state_dict']
-                print("here")
-
         copy_state_dict(current_model, pretrained_model, prefix = prefix, drop_prefix=drop_prefix, **kwargs)
-        # print(current_model['position_embedding.row_embed.weight'])
+        
+        logging.warning('Successfully loaded the model {}!'.format(path))
     else:
         logging.warning('model {} not exist!'.format(path))
     return model

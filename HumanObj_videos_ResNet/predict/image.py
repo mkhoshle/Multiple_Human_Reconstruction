@@ -92,8 +92,12 @@ class Image_processor(Predictor):
             plt.imsave('output_image.jpg',meta_data['image'][0].numpy())
             # plt.show()
             
+            print(meta_data['imgpath'])
             
             outputs = self.net_forward(meta_data, window_meta_data['image'], cfg=self.demo_cfg)
+            
+            print('outputs', outputs.keys())
+            # print(outputs['center_map'])
             
             reorganize_idx = outputs['reorganize_idx'].cpu().numpy()
             counter.count(self.val_batch_size)
@@ -116,8 +120,8 @@ class Image_processor(Predictor):
                 print(outputs['detection_flag'])
                 print(results_dict.keys())
 
-                # for img_name, mesh_rendering_orgimg in zip(img_names, results_dict['mesh_rendering_orgimgs']['figs']):
-                for img_name, mesh_rendering_orgimg in zip(img_names, results_dict['centermap']['figs']):
+                for img_name, mesh_rendering_orgimg in zip(img_names, results_dict['mesh_rendering_orgimgs']['figs']):
+                # for img_name, mesh_rendering_orgimg in zip(img_names, results_dict['centermap']['figs']):
                     save_name = os.path.join(self.output_dir, os.path.basename(img_name))
                     cv2.imwrite(save_name, cv2.cvtColor(mesh_rendering_orgimg, cv2.COLOR_RGB2BGR))
 

@@ -13,7 +13,7 @@ ARGS:
  nw: 4                
  nw_eval: 4             
  lr: 0.00005
- use_wandb: True
+ use_wandb: False
  exp: 'HOI_pool_64_rel_0.00005_hm_debug_val'              # experiment name
  save_dir: './results'           # Path to results directory
  
@@ -29,7 +29,6 @@ ARGS:
  dropout: 0.1
  nheads: 8
  dim_feedforward: 256
- deformable: True
 
 
  enc_layers: 3

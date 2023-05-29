@@ -3,39 +3,33 @@ from loss_funcs import calc_mpjpe, calc_pampjpe, align_by_parts
 from evaluation import h36m_evaluation_act_wise, cmup_evaluation_act_wise
 import wandb
 
-
 @torch.no_grad()
 def val_result(self, loader_val, evaluation=False):
-    if self.distributed_training:
-        eval_model = self.model.module
-    elif self.master_batch_size != -1:
-        eval_model = nn.DataParallel(self.model.module)
-    else:
-        eval_model = self.model
-    if self.backbone == 'resnet':
-        eval_model.train()
-    else:
-        eval_model.eval()
+    eval_model = nn.DataParallel(self.model).eval()
     ED = _init_error_dict()
-
     for iter_num, meta_data in enumerate(loader_val):
-        window_meta_data = self.get_window(meta_data)
-        window_meta_data = torch.stack(window_meta_data, axis=0)
-
         if meta_data is None:
             continue
-
         meta_data_org = meta_data.copy()
-        outputs = self.network_forward(
-            eval_model, meta_data, window_meta_data, self.eval_cfg)
 
+        if not evaluation:
+            window_meta_data = self.get_window(meta_data)
+            window_meta_data = torch.stack(window_meta_data, axis=0)
+        else:
+            window_meta_data = get_window(meta_data)
+            window_meta_data = torch.stack(window_meta_data, axis=0)
+
+        # print(meta_data['image'].shape,window_meta_data.shape,111)
+        
+        outputs = self.network_forward(eval_model, meta_data, window_meta_data, self.eval_cfg)       
+        
         if not outputs['detection_flag']:
-            print('Detection failure!!! {}'.format(
-                outputs['meta_data']['imgpath']))
+            print('Detection failure!!! {}'.format(outputs['meta_data']['imgpath']))
             continue
 
         error_dict = {'3d': {'error': [], 'idx': []},
                       '2d': {'error': [], 'idx': []}}
+        
         for ds in set(outputs['meta_data']['data_set']):
             val_idx = np.where(
                 np.array(outputs['meta_data']['data_set']) == ds)[0]
@@ -91,12 +85,12 @@ def val_result(self, loader_val, evaluation=False):
             save_name = '{}_{}'.format(self.global_count, iter_num)
             for ds_name in set(outputs['meta_data']['data_set']):
                 save_name += '_{}'.format(ds_name)
+
             self.visualizer.visulize_result(outputs, outputs['meta_data'], show_items=['mesh', 'joint_sampler', 'j3d', 'pj2d', 'classify'],
                                             vis_cfg={'settings': ['save_img'], 'vids': vis_ids, 'save_dir': self.result_img_dir, 'save_name': save_name}, kp3ds=(*aligned_poses, bones))  # 'org_img',
             #self.summary_writer.add_images('eval_results', vis_eval_results[:,:,:,::-1], self.global_count, dataformats='NHWC')
             # self.visualizer.add_mesh_to_writer(self.summary_writer,outputs['verts'][:vis_num],'eval_verts')
 
-        # print(outputs.keys())
         show_items_list = ['org_img', 'mesh', 'pj2d', 'centermap']
         results_dict, img_names = self.visualizer.visulize_result(outputs, outputs['meta_data'], \
                     show_items=show_items_list, vis_cfg={'settings':['put_org']}, save2html=False)
@@ -112,6 +106,61 @@ def val_result(self, loader_val, evaluation=False):
     MPJPE_result, PA_MPJPE_result, eval_matrix = print_results(ED)
 
     return MPJPE_result, PA_MPJPE_result, eval_matrix
+
+def get_prev_frame(frame_index):
+    if frame_index-10 >= 0:
+        prev_frame = random.choice(
+            list(range(frame_index-10, frame_index)))
+    elif frame_index > 0:
+        prev_frame = random.choice(list(range(0, frame_index)))
+    elif frame_index == 0:
+        prev_frame = random.choice(list(range(0, frame_index+1)))
+
+    return prev_frame
+
+def get_frame_index(root, data_class, img_name):
+    if data_class == 'pw3d':
+        img_num = img_name.split("_")[1]
+        frame_index = int(img_num.split(".")[0])
+        prev_frame = get_prev_frame(frame_index)
+
+        prev_frame_path = os.path.join(root, "image_"+"0"*(5-len(str(prev_frame)))+str(prev_frame)+".jpg")
+    elif data_class == 'mpiinf':  
+        img_num = img_name.split("_")[-1]
+        frame_index = int(img_num.split(".")[0][1:])
+        prev_frame = frame_index-10
+        
+        prev_frame_path = os.path.join(root,"_".join(img_name.split("_")[:-1])+"_F"+"0"*(6-len(str(prev_frame)))+str(prev_frame)+".jpg")
+        if not os.path.exists(prev_frame_path):
+            prev_frame = frame_index
+            prev_frame_path = os.path.join(root,"_".join(img_name.split("_")[:-1])+"_F"+"0"*(6-len(str(prev_frame)))+str(prev_frame)+".jpg")
+
+
+    return frame_index, prev_frame_path
+
+# TO DO: Correct naming here
+
+def get_window(img_info, **kwargs):
+    """
+    Loads the frames around a specific index.
+    """
+    meta_data = list()
+    for i, path in enumerate(img_info['imgpath']):
+        img_path = img_info['imgpath'][i]
+        # video_name = img_info['video_name'][i]
+        dataset = dataset_dict[img_info['data_class'][i]](**kwargs)
+        path = img_path.split('/')
+        root = "/".join(path[:-1])
+        frame_index, prev_frame_path = get_frame_index(root,
+            img_info['data_class'][i], path[-1])
+
+        prev_image = dataset.get_image_from_video_name(prev_frame_path)
+        if prev_image==None:
+            meta_data.append(img_info['image'][i])
+        else:
+            meta_data.append(prev_image)
+
+    return meta_data
 
 
 def print_results(ED):
@@ -131,7 +180,7 @@ def print_results(ED):
         for ds_name in constants.PVE_ds:
             if len(ED['MPJPE'][ds_name]) > 0:
                 eval_matrix['{}-PVE'.format(ds_name)] = np.mean(compute_error_verts(target_theta=torch.cat(ED['PVE'][ds_name]['target_theta'], 0),
-                                                                                    pred_theta=torch.cat(ED['PVE'][ds_name]['pred_theta'], 0), smpl_path=os.path.join(args().smpl_model_path, 'smpl'))) * 1000
+                                                                                    pred_theta=torch.cat(ED['PVE'][ds_name]['pred_theta'], 0), smpl_path=args().smpl_model_path)) * 1000
 
     print_table(eval_matrix)
 

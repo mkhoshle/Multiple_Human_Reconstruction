@@ -45,6 +45,7 @@ class Base(nn.Module):
             outputs, meta_data = self._result_parser.matching_forward(outputs, meta_data, cfg)
                 
         outputs['meta_data'] = meta_data
+
         if cfg['calc_loss']:
             outputs.update(self._calc_loss(outputs))
 
@@ -53,7 +54,6 @@ class Base(nn.Module):
     
     @torch.no_grad()
     def parsing_forward(self, meta_data, window_meta_data, **cfg):
-        print("output")
         if args().model_precision=='fp16':
             with autocast():
                 outputs = self.feed_forward(meta_data, window_meta_data)
@@ -68,6 +68,7 @@ class Base(nn.Module):
     def feed_forward(self, meta_data, window_meta_data): 
         meta_data['image'] = meta_data['image'].contiguous().cuda()
         window_meta_data = window_meta_data.contiguous().cuda()
+
         outputs = self.head_forward(meta_data['image'], window_meta_data)
         return outputs
 

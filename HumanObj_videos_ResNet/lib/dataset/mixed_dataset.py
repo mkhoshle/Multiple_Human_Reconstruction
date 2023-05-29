@@ -90,7 +90,6 @@ class SingleDataset(torch.utils.data.Dataset):
         self.dataset = dataset_dict[dataset](**kwargs)
         self.length = len(self.dataset)     
         
-
     def __getitem__(self, index):
         return self.dataset[index]
 
