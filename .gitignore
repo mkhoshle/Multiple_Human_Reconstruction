@@ -18,6 +18,7 @@ results/
 active_configs/
 model_data/
 log_slurm/
+configs/
 
 
 
