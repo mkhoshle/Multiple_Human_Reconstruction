@@ -16,7 +16,9 @@ demo/
 wandb/
 results/
 active_configs/
-configs/
+model_data/
+log_slurm/
+
 
 
 
