@@ -1,40 +1,82 @@
 ARGS:
- tab: 'pw3d_test_train_state'
- # pw3d_test pw3d_pc pw3d_nc pw3d_oc crowdpose_val  crowdpose_test  cmup  MuPoTs  runtime  
- eval_dataset: pw3d_test #'mpiinf_test' 'agora' 'pw3d_test' # mupots pw3d_test  cmup pw3d_nc pw3d_oc
- test_tracking: False
- exp: 'pw3d_test'  
+ tab: 'process_images'
  GPUS: 0
- model_version: 1
- use_wandb: True
- save_dir: './results_test' 
- 
+ exp: 'pw3d_test'
+
+ eval_dataset: pw3d_test
  backbone: 'resnet' 
- position_embedding: "learned"
- model_precision: 'fp32'
- val_batch_size: 4
+
+ model_version: 1
+ save_dir: './results_test'
+ use_wandb: True
+ centermap_size: 32
+ centermap_conf_thresh: 0.25
+ calc_PVE_error: True
+ acquire_pa_trans_scale: False
+ 
+ batch_size: 16
+ val_batch_size: 32
  nw: 4
  nw_eval: 4
- centermap_size: 32
- hidden_dim: 64                 # This should be divisible by the number of heads
+ position_embedding: "learned"
  hidden_dim_pos: 64
+ # This should be divisible by the number of heads
+ hidden_dim: 64
+ dropout: 0.1
  nheads: 8
  dim_feedforward: 256
  enc_layers: 3
  dec_layers: 3
- dropout: 0.1
- pre_norm: True 
  track_attention: False
+ pre_norm: True
 
+ model_path: "trained_models/resnet_cm32_V1_epoch_68.pkl" 
+ # model_path: "trained_models/resnet_cm32_V1_epoch_51.pkl"
  eval: True
- collision_aware_centermap: False
- collision_factor: 0.2
- smpl_mesh_root_align: False
+ fine_tune: False
+ save_dict_results : True
+ collision_aware_centermap : True
+ shuffle_crop_ratio_3d : 0.4
+ shuffle_crop_mode : True
+ homogenize_pose_space : True 
 
- backbone: 'resnet' # 'hrnet' 
- centermap_conf_thresh: 0.2
- visualize_all_results: False
- merge_smpl_camera_head: False
+#  tab: 'pw3d_test_train_state'
+#  # pw3d_test pw3d_pc pw3d_nc pw3d_oc crowdpose_val  crowdpose_test  cmup  MuPoTs  runtime  
+#  eval_dataset: pw3d_test #'mpiinf_test' 'agora' 'pw3d_test' # mupots pw3d_test  cmup pw3d_nc pw3d_oc
+#  GPUS: 0
+#  test_tracking: False
+#  exp: 'pw3d_test'  
  
- model_path: "trained_models/resnet_cm32_V1_epoch_9.pkl" 
+#  model_version: 1
+#  use_wandb: True
+#  save_dir: './results_test' 
+ 
+#  backbone: 'resnet' 
+#  position_embedding: "learned"
+#  model_precision: 'fp16'
+#  val_batch_size: 64
+#  nw: 4
+#  nw_eval: 4
+#  hidden_dim: 64                 # This should be divisible by the number of heads
+#  hidden_dim_pos: 64
+#  nheads: 8
+#  dim_feedforward: 256
+#  enc_layers: 3
+#  dec_layers: 3
+#  dropout: 0.1
+#  pre_norm: True 
+#  track_attention: False
+
+#  eval: True
+#  collision_aware_centermap: False
+#  collision_factor: 0.2
+#  smpl_mesh_root_align: False
+
+#  backbone: 'resnet' # 'hrnet' 
+#  centermap_size: 32
+#  centermap_conf_thresh: 0.2
+#  visualize_all_results: False
+#  merge_smpl_camera_head: False
+ 
+#  model_path: "trained_models/resnet_cm32_V1_epoch_68.pkl" 
 #  model_path: /export/home/suny/CenterMesh/trained_models/resnet_cm64_V1_resnet_vibe_88.79_52.53_h36m,mpiinf,coco,mpii,lsp,muco,crowdpose.pkl
